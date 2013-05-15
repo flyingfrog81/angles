@@ -217,7 +217,11 @@ def normalize(num, lower=0, upper=360, b=False):
         if num < lower or num == upper:
             num = upper - abs(num - lower) % (abs(lower) + abs(upper))
 
-        res = lower if num == upper else num
+        #res = lower if num == upper else num
+        if num == upper:
+            res = lower
+        else:
+            res = num
     else:
         total_length = abs(lower) + abs(upper)
         if num < -total_length:
@@ -534,11 +538,16 @@ def fmt_angle(val, s1=" ", s2=" ", s3=" ", pre=3, trunc=False,
 
     x = deci2sexa(n, pre=pre, trunc=trunc, lower=lower, upper=upper,
                   upper_trim=upper_trim)
-
-    p = "{3:0" + "{0}.{1}".format(pre + 3, pre) + "f}" + s3
-    p = "{0}{1:02d}" + s1 + "{2:02d}" + s2 + p
-
-    return p.format("-" if x[0] < 0 else "+", *x[1:])
+    if x[0] < 0:
+        sign = '-'
+    else:
+        sign = '+'
+    float_format = "%0" + str(pre + 3) + "." + str(pre) + "f"
+    p = "%s" + "%02d" + "%s" + "%02d" + "%s" + float_format + "%s"
+    return p % (sign, x[1], s1, x[2], s2, x[3], s3)
+    #p = "{3:0" + "{0}.{1}".format(pre + 3, pre) + "f}" + s3
+    #p = "{0}{1:02d}" + s1 + "{2:02d}" + s2 + p
+    #return p.format("-" if x[0] < 0 else "+", *x[1:])
 
 
 def phmsdms(hmsdms):
@@ -718,7 +727,13 @@ def phmsdms(hmsdms):
     if sign is None:  # None of these are negative.
         sign = 1
 
-    vals = [abs(i) if i is not None else 0.0 for i in parts]
+    #vals = [abs(i) if i is not None else 0.0 for i in parts]
+    vals = range(len(parts))
+    for i, _p in enumerate(parts):
+        if _p is not None:
+            vals[i] = _p
+        else:
+            vals[i] = 0.0
 
     return dict(sign=sign, units=units, vals=vals, parts=parts)
 
@@ -1157,25 +1172,26 @@ class Angle(object):
             # Insert this into kwargs so that the conditional below
             # gets it.
             kwargs['sg'] = str(sg)
-        x = (True if i in self._keyws else False for i in kwargs)
-        if not all(x):
-            raise TypeError("Only {0} are allowed.".format(self._keyws))
+        #x = (True if i in self._keyws else False for i in kwargs)
+        for _kwarg in kwargs:
+            if not _kwarg in self.keyws:
+                raise TypeError("Only %s are allowed." % (str(self._keyws),))
         if "sg" in kwargs:
             x = phmsdms(kwargs['sg'])
             if x['units'] not in self._units:
-                raise ValueError("Unknow units: {0}".format(x['units']))
+                raise ValueError("Unknow units: %s" % (x['units'],))
             self._iunit = self._units.index(x['units'])
             if self._iunit == 1:
                 self._setnorm(d2r(sexa2deci(x['sign'], *x['vals'])))
             elif self._iunit == 2:
                 self._setnorm(h2r(sexa2deci(x['sign'], *x['vals'])))
             if len(kwargs) != 1:
-                warnings.warn("Only sg = {0} used.".format(kwargs['sg']))
+                warnings.warn("Only sg = %s used." % (kwargs['sg'],))
         elif "r" in kwargs:
             self._iunit = 0
             self._setnorm(kwargs['r'])
             if len(kwargs) != 1:
-                warnings.warn("Only r = {0} used.".format(kwargs['r']))
+                warnings.warn("Only r = %s used." % (kwargs['r'],))
         else:
             if "d" in kwargs:
                 self._iunit = 1
@@ -1236,7 +1252,7 @@ class Angle(object):
 
     def __setounit(self, val):
         if val not in self._units:
-            raise ValueError("Unit can only be {0}".format(self._units))
+            raise ValueError("Unit can only be %s" % (str(self._units),))
         self._ounit = val
 
     ounit = property(__getounit, __setounit, doc="String output unit.")
