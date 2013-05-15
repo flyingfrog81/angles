@@ -281,16 +281,13 @@ Class for points on a unit sphere::
 Installation
 ------------
 
-Use `pip`_ or `easy_install`_::
+Install directcly from this git repo via pip::
 
-  $ pip install angles
+    $ pip install git+http://github.com/flyingfrog81/angles.git#egg=angles
 
-or,
+Or download the zip from the top link and run::
 
-::
-
-  $ easy_install angles
-
+    $ python setup.py install
   
 Details
 -------
