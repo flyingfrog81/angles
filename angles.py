@@ -1174,13 +1174,16 @@ class Angle(object):
             kwargs['sg'] = str(sg)
         #x = (True if i in self._keyws else False for i in kwargs)
         for _kwarg in kwargs:
-            if not _kwarg in self.keyws:
+            if not _kwarg in self._keyws:
                 raise TypeError("Only %s are allowed." % (str(self._keyws),))
         if "sg" in kwargs:
             x = phmsdms(kwargs['sg'])
             if x['units'] not in self._units:
                 raise ValueError("Unknow units: %s" % (x['units'],))
-            self._iunit = self._units.index(x['units'])
+            #self._iunit = self._units.index(x['units'])
+            for i, _unit in enumerate(self._units):
+                if _unit == x['units']:
+                    self._iunit = i
             if self._iunit == 1:
                 self._setnorm(d2r(sexa2deci(x['sign'], *x['vals'])))
             elif self._iunit == 2:
